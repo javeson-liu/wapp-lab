@@ -1,0 +1,17 @@
+# Build output
+bin/
+obj/
+packages/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Web.config with credentials (never commit real credentials)
+# Web.config

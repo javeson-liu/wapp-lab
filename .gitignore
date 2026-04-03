@@ -1,0 +1,20 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+
+# NuGet packages (restore from packages.config)
+packages/
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Claude/tool files
+.remember/
+.claude/

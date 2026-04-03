@@ -12,9 +12,13 @@
 packages/
 
 # OS files
+.DS_Store
 Thumbs.db
 Desktop.ini
 
 # Claude/tool files
 .remember/
 .claude/
+
+# Web.config with credentials (never commit real credentials)
+# Web.config

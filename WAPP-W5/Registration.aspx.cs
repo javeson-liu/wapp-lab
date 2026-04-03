@@ -2,6 +2,8 @@ using System;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Security.Cryptography;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -11,7 +13,7 @@ namespace WAPP_W5
     {
         private string ConnectionString
         {
-            get { return ConfigurationManager.ConnectionStrings["WAPP_W5_DB"].ConnectionString; }
+            get { return ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString; }
         }
 
         protected void Page_Load(object sender, EventArgs e)
@@ -25,17 +27,6 @@ namespace WAPP_W5
 
         private void EnsureDatabaseExists()
         {
-            string masterConn = "Data Source=(LocalDb)\\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True";
-            using (SqlConnection conn = new SqlConnection(masterConn))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand(
-                    "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'WAPP_W5_DB') CREATE DATABASE WAPP_W5_DB", conn))
-                {
-                    cmd.ExecuteNonQuery();
-                }
-            }
-
             using (SqlConnection conn = new SqlConnection(ConnectionString))
             {
                 conn.Open();
@@ -104,7 +95,7 @@ namespace WAPP_W5
                 {
                     cmd.Parameters.AddWithValue("@Name", txtName.Text.Trim());
                     cmd.Parameters.AddWithValue("@Email", txtEmail.Text.Trim());
-                    cmd.Parameters.AddWithValue("@Password", txtPassword.Text);
+                    cmd.Parameters.AddWithValue("@Password", HashPassword(txtPassword.Text));
                     cmd.Parameters.AddWithValue("@Phone", string.IsNullOrEmpty(txtPhone.Text.Trim()) ? (object)DBNull.Value : txtPhone.Text.Trim());
                     cmd.Parameters.AddWithValue("@Address", string.IsNullOrEmpty(txtAddress.Text.Trim()) ? (object)DBNull.Value : txtAddress.Text.Trim());
                     cmd.ExecuteNonQuery();
@@ -126,7 +117,7 @@ namespace WAPP_W5
                     cmd.Parameters.AddWithValue("@Id", id);
                     cmd.Parameters.AddWithValue("@Name", txtName.Text.Trim());
                     cmd.Parameters.AddWithValue("@Email", txtEmail.Text.Trim());
-                    cmd.Parameters.AddWithValue("@Password", txtPassword.Text);
+                    cmd.Parameters.AddWithValue("@Password", HashPassword(txtPassword.Text));
                     cmd.Parameters.AddWithValue("@Phone", string.IsNullOrEmpty(txtPhone.Text.Trim()) ? (object)DBNull.Value : txtPhone.Text.Trim());
                     cmd.Parameters.AddWithValue("@Address", string.IsNullOrEmpty(txtAddress.Text.Trim()) ? (object)DBNull.Value : txtAddress.Text.Trim());
                     cmd.ExecuteNonQuery();
@@ -181,7 +172,7 @@ namespace WAPP_W5
                         {
                             txtName.Text = reader["Name"].ToString();
                             txtEmail.Text = reader["Email"].ToString();
-                            txtPassword.Attributes["value"] = reader["Password"].ToString();
+                            txtPassword.Attributes["value"] = "";
                             txtPhone.Text = reader["Phone"] == DBNull.Value ? "" : reader["Phone"].ToString();
                             txtAddress.Text = reader["Address"] == DBNull.Value ? "" : reader["Address"].ToString();
                             ViewState["EditId"] = id;
@@ -196,6 +187,20 @@ namespace WAPP_W5
         protected void btnClear_Click(object sender, EventArgs e)
         {
             ClearForm();
+        }
+
+        private string HashPassword(string password)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
         }
 
         private void ClearForm()
